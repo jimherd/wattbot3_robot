@@ -72,6 +72,8 @@ extern  uint8_t          radio_channel;
 extern  uint32_t         tick_count;
 extern  uint8_t          radio_id;
 
+extern const uint8_t steering_mode_B_states[64];
+
 
 extern  FLASH_data_t    FLASH_data;
 

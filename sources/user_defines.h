@@ -59,6 +59,8 @@
 #define     DEFAULT_SPIN_TIME          5
 #define     DEFAULT_PWM               60
 
+#define     MINIMUM_SPEED             20
+
 #define     DIFFERENTIAL_NULL          7
 
 #define     FLASH_ERASE_STATE       0xff
@@ -70,7 +72,7 @@ typedef enum {
     STEER_MODE_A, STEER_MODE_B
 } steer_mode_t;
 #define   MAX_STEER_MODE    STEER_MODE_B
-    
+ 
 
 //----------------------------------------------------------------------------
 // error codes
@@ -93,7 +95,7 @@ typedef enum {FULL_SPEED=100, HALF_SPEED=50} speed_t;
 typedef enum {MOTOR_OFF, MOTOR_FORWARD, MOTOR_BACKWARD, MOTOR_BRAKE} motor_mode_t;
 typedef enum {STOPPED, MOVING_FORWARD, MOVING_BACKWARD, TURNING_LEFT, TURNING_RIGHT} vehicle_state_t;
 typedef enum {LEFT_MOTOR, RIGHT_MOTOR} motor_t;
-typedef enum {FORWARD, BACKWARD, SPIN_RIGHT, SPIN_LEFT} direction_t;
+typedef enum {HALTED, FORWARD, BACKWARD, SPIN_RIGHT, SPIN_LEFT, FORWARD_LEFT, FORWARD_RIGHT, REVERSE_LEFT, REVERSE_RIGHT} direction_t;
 typedef enum {MODE_INIT, MODE_RUNNING, MODE_STOPPED} mode_state_t;
    
 //----------------------------------------------------------------------------

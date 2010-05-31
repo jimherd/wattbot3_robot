@@ -79,11 +79,13 @@ uint8_t           temp;
         if (temp > MAX_STEER_MODE) {
             temp = 0;
         }
+temp = 1;    // ***************************** temporary test
         switch (temp) {
           case STEER_MODE_A :
             steer_mode_A(&psx_data, &mot_data);
             break;
           case STEER_MODE_B :
+            steer_mode_B(&psx_data, &mot_data);
             break;
           default :
             hang(3);
