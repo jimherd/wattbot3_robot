@@ -59,7 +59,15 @@
 #define     DEFAULT_SPIN_TIME          5
 #define     DEFAULT_PWM               60
 
-#define     MINIMUM_SPEED             20
+#define     MINIMUM_PWM               10
+#define     MAXIMUM_PWM              100
+//
+// linear segemnts for speed to PWM transfer funcion colaculation
+//
+#define     KNEE_1_X                 100
+#define     KNEE_1_Y                  40
+
+#define     NOS_SEGMENTS               2
 
 #define     DIFFERENTIAL_NULL          7
 

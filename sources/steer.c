@@ -90,7 +90,7 @@ void steer_mode_A(psx_map  *psx_data, motor_data  *m_data)
 //      Left joystick gives steering information
 //      Right joystick gives speed information
 //          converted for 0->128 to MINIMUN_SPEED->100
-//      Invert joystick values
+//      Invert y joystick values
 //
 // Parameters
 //      psx_data[in]      pointer to PS2 controller data structure
@@ -102,15 +102,32 @@ void steer_mode_A(psx_map  *psx_data, motor_data  *m_data)
 void steer_mode_B(psx_map  *psx_data, motor_data  *m_data) 
 {
 direction_t steer_code;
-uint8_t speed, joy_left_x, joy_left_y, joy_right_x, joy_right_y;
-
-    joy_left_x = ~psx_data->joy_left_x;
-    joy_left_y = ~psx_data->joy_left_y;
-    joy_right_x = ~psx_data->joy_right_x;
-    joy_right_y = ~psx_data->joy_right_y;
-           
-    speed =  joy_right_y - 128;
-    speed = ((speed * (100 - MINIMUM_SPEED))/128) + MINIMUM_SPEED;
+uint8_t speed, joy_left_x, joy_left_y, joy_right_x, joy_right_y, temp;
+//
+// get joystick values and invert y-axis readings
+//
+    joy_left_x = psx_data->joy_left_x;
+    joy_left_y = ~psx_data->joy_left_y;       // invert
+    joy_right_x = psx_data->joy_right_x;
+    joy_right_y = ~psx_data->joy_right_y;     // invert
+//
+// adjust right y-axis joysick to give 0->127 value for PWM calculation
+//          
+    if (joy_right_y < 128) {
+        temp = 0;
+    } else {
+        temp = joy_right_y - 127;
+    }
+//
+// select PWM segment and call linear interpolator
+//    
+    if (temp <= KNEE_1_X) {
+        speed = linear_interpolate(temp, &segment_1);     // use first segment
+    }else {
+        speed = linear_interpolate(temp, &segment_2);     // use second segment
+    }
+       
+//    speed = ((speed * (100 - MINIMUM_PWM))/128) + MINIMUM_PWM;
     steer_code = ((joy_left_x >> 5) & 0x07) + ((joy_left_y >> 2) & 0x38);
     switch (steering_mode_B_states[steer_code]) {
       case HALTED :
@@ -139,22 +156,22 @@ uint8_t speed, joy_left_x, joy_left_y, joy_right_x, joy_right_y;
         m_data->right_motor_mode = MOTOR_BACKWARD;        
         break;
       case FORWARD_LEFT :
-        m_data->left_speed = ((speed - MINIMUM_SPEED)/2); m_data->right_speed = speed;
+        m_data->left_speed = ((speed - MINIMUM_PWM)/2); m_data->right_speed = speed;
         m_data->left_motor_mode = MOTOR_FORWARD;
         m_data->right_motor_mode = MOTOR_FORWARD;        
         break;
       case FORWARD_RIGHT :
-        m_data->left_speed = speed; m_data->right_speed = ((speed - MINIMUM_SPEED)/2);
+        m_data->left_speed = speed; m_data->right_speed = ((speed - MINIMUM_PWM)/2);
         m_data->left_motor_mode = MOTOR_FORWARD;
         m_data->right_motor_mode = MOTOR_FORWARD;        
         break; 
       case REVERSE_LEFT :
-        m_data->left_speed = ((speed - MINIMUM_SPEED)/2); m_data->right_speed = speed;
+        m_data->left_speed = ((speed - MINIMUM_PWM)/2); m_data->right_speed = speed;
         m_data->left_motor_mode = MOTOR_BACKWARD;
         m_data->right_motor_mode = MOTOR_BACKWARD;        
         break;
       case REVERSE_RIGHT :
-        m_data->left_speed = speed; m_data->right_speed = ((speed - MINIMUM_SPEED)/2);
+        m_data->left_speed = speed; m_data->right_speed = ((speed - MINIMUM_PWM)/2);
         m_data->left_motor_mode = MOTOR_BACKWARD;
         m_data->right_motor_mode = MOTOR_BACKWARD;        
         break;                                 
@@ -163,7 +180,6 @@ uint8_t speed, joy_left_x, joy_left_y, joy_right_x, joy_right_y;
     }
 }
 
-
 //----------------------------------------------------------------------------
 // command_motors : convert motor commands to motor moves
 // ==============
@@ -171,7 +187,7 @@ uint8_t speed, joy_left_x, joy_left_y, joy_right_x, joy_right_y;
 // Notes
 //
 // Parameters
-//      motor_data[in]    pointer to motor data structure
+//      m_data[in]    pointer to motor data structure
 //
 // Values returned
 //      none
@@ -182,17 +198,40 @@ void command_motors (motor_data  *m_data)
     if (((m_data->left_motor_mode == MOTOR_FORWARD) && (m_data->current_left_motor_mode == MOTOR_BACKWARD)) ||
         ((m_data->left_motor_mode == MOTOR_BACKWARD) && (m_data->current_left_motor_mode == MOTOR_FORWARD))) {
         set_motor(LEFT_MOTOR, MOTOR_BRAKE, 0);
-        delay_ms(30);
+        delay_ms(80);
         }
     set_motor(LEFT_MOTOR, m_data->left_motor_mode, (uint8_t)m_data->left_speed);
-    
+    delay_ms(20);
     if (((m_data->right_motor_mode == MOTOR_FORWARD) && (m_data->current_right_motor_mode == MOTOR_BACKWARD)) ||
         ((m_data->right_motor_mode == MOTOR_BACKWARD) && (m_data->current_right_motor_mode == MOTOR_FORWARD))) {
         set_motor(RIGHT_MOTOR, MOTOR_BRAKE, 0);
-        delay_ms(30);
+        delay_ms(80);
         }     
-    delay_ms(10);
+    delay_ms(20);
     set_motor(RIGHT_MOTOR, m_data->right_motor_mode, (uint8_t)m_data->right_speed);
     delay_ms(100);
 }
-    
+
+//----------------------------------------------------------------------------
+// linear_interpolate : perform linear interpolation
+// ==================
+//
+// Notes
+//      Perform linear interpolation
+//
+// Parameters
+//      x_value[in]      input x-axis value
+//      l_data[in]       pointer to line data structure
+//
+// Values returned
+//      y_value
+//
+uint8_t linear_interpolate(uint8_t x_value, segment_data  *s_data) 
+{
+int16_t  temp;
+
+    temp =  s_data->delta_x;
+
+    return (uint8_t)(((s_data->y2 * s_data->delta_x) + ((x_value - s_data->x2) * s_data->delta_y)) / s_data->delta_x);   
+}
+ 

@@ -81,3 +81,28 @@ const uint8_t steering_mode_B_states[64] = {
   FORWARD_LEFT,FORWARD_LEFT,FORWARD_LEFT,FORWARD, FORWARD, FORWARD_RIGHT,FORWARD_RIGHT,FORWARD_RIGHT,  // 48->55
   FORWARD_LEFT,FORWARD_LEFT,FORWARD_LEFT,FORWARD, FORWARD, FORWARD_RIGHT,FORWARD_RIGHT,FORWARD_RIGHT,  // 56->63
 };
+
+const struct segment_data segment_1 = {
+    MINIMUM_PWM, 0,
+    KNEE_1_X, KNEE_1_Y,
+    (KNEE_1_X - 0), (KNEE_1_Y - MINIMUM_PWM)
+};
+
+const struct segment_data segment_2 = {
+    KNEE_1_X, KNEE_1_Y,
+    128, MAXIMUM_PWM,
+    (128 - KNEE_1_X), (MAXIMUM_PWM - KNEE_1_Y)
+};
+
+const segment_data segments[2]  = {          // structure
+    {
+        MINIMUM_PWM, 0,
+        KNEE_1_X, KNEE_1_Y,
+        (KNEE_1_X - MINIMUM_PWM), (KNEE_1_Y - 0)
+    }, 
+    {
+        KNEE_1_X, KNEE_1_Y,
+        128, MAXIMUM_PWM,
+        (128 - KNEE_1_X), (MAXIMUM_PWM - KNEE_1_Y)
+    }
+}; 
