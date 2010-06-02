@@ -65,7 +65,7 @@
 // linear segemnts for speed to PWM transfer funcion colaculation
 //
 #define     KNEE_1_X                 100
-#define     KNEE_1_Y                  40
+#define     KNEE_1_Y                  35
 
 #define     NOS_SEGMENTS               2
 
@@ -77,9 +77,9 @@
 #define     LOW_BATTERY_THRESHOLD       180
 
 typedef enum {
-    STEER_MODE_A, STEER_MODE_B
+    STEER_MODE_0, STEER_MODE_1, STEER_MODE_2
 } steer_mode_t;
-#define   MAX_STEER_MODE    STEER_MODE_B
+#define   MAX_STEER_MODE    STEER_MODE_2
  
 
 //----------------------------------------------------------------------------

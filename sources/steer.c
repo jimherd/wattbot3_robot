@@ -27,7 +27,7 @@ const uint8_t joystick_to_speed[32] = {
 };
 
 //----------------------------------------------------------------------------
-// steer_mode_A : Calc motor commands for skid steering mode
+// steer_mode_0 : Calc motor commands for skid steering mode
 // ============
 //
 // Notes
@@ -48,7 +48,7 @@ const uint8_t joystick_to_speed[32] = {
 // Values returned
 //      none
 //
-void steer_mode_A(psx_map  *psx_data, motor_data  *m_data) 
+void steer_mode_0(psx_map  *psx_data, motor_data  *m_data) 
 {
 
     m_data->left_speed = psx_data->joy_left_y;
@@ -83,7 +83,7 @@ void steer_mode_A(psx_map  *psx_data, motor_data  *m_data)
 }
 
 //----------------------------------------------------------------------------
-// steer_mode_B : Calc motor commands for steer/speed steering mode
+// steer_mode_1 : Calc motor commands for steer/speed steering mode
 // ============
 //
 // Notes
@@ -99,7 +99,7 @@ void steer_mode_A(psx_map  *psx_data, motor_data  *m_data)
 // Values returned
 //      none
 //
-void steer_mode_B(psx_map  *psx_data, motor_data  *m_data) 
+void steer_mode_1(psx_map  *psx_data, motor_data  *m_data) 
 {
 direction_t steer_code;
 uint8_t speed, joy_left_x, joy_left_y, joy_right_x, joy_right_y, temp;
@@ -127,7 +127,6 @@ uint8_t speed, joy_left_x, joy_left_y, joy_right_x, joy_right_y, temp;
         speed = linear_interpolate(temp, &segment_2);     // use second segment
     }
        
-//    speed = ((speed * (100 - MINIMUM_PWM))/128) + MINIMUM_PWM;
     steer_code = ((joy_left_x >> 5) & 0x07) + ((joy_left_y >> 2) & 0x38);
     switch (steering_mode_B_states[steer_code]) {
       case HALTED :
@@ -179,6 +178,120 @@ uint8_t speed, joy_left_x, joy_left_y, joy_right_x, joy_right_y, temp;
         break;
     }
 }
+
+//----------------------------------------------------------------------------
+// steer_mode_2 : Calc motor commands for combined steer/speed steering mode
+// ============
+//
+// Notes
+//      Left joystick gives steering information and speed
+//      Invert y joystick values
+//
+// Parameters
+//      psx_data[in]      pointer to PS2 controller data structure
+//      motor_data[out]   pointer to motor data structure
+//
+// Values returned
+//      none
+//
+void steer_mode_2(psx_map  *psx_data, motor_data  *m_data) 
+{
+direction_t steer_code;
+uint8_t speed, joy_left_x, joy_left_y, joy_right_x, joy_right_y, temp;
+//
+// get joystick values and invert y-axis readings
+//
+    joy_left_x = psx_data->joy_left_x;
+    joy_left_y = ~psx_data->joy_left_y;       // invert
+    joy_right_x = psx_data->joy_right_x;
+    joy_right_y = ~psx_data->joy_right_y;     // invert
+//
+// get steer code
+//
+    steer_code = ((joy_left_x >> 5) & 0x07) + ((joy_left_y >> 2) & 0x38);
+//
+// adjust left x/y-axis joysick to give 0->127 value for PWM calculation
+//          
+    if (joy_left_y > 127) {
+        joy_left_y = (joy_left_y - 128);
+    } else {
+        joy_left_y = (~joy_left_y) & 0x7F;
+    }
+    joy_left_y = (joy_left_y >> 3) & 0x0F;
+    
+    if (joy_left_x > 127) {
+        joy_left_x = (joy_left_x - 128);
+    } else {
+        joy_left_x = (~joy_left_x) & 0x7F;        
+    }
+    joy_left_x = (joy_left_x >> 3) & 0x0F;
+//
+// get PWM from lookup table reset back to 0->127 range
+//    
+    temp = isqrt_table[((joy_left_y * joy_left_y) + (joy_left_x * joy_left_x))];
+    temp = (temp << 3) & 0xF0;
+    if (temp > 127 ) {
+        temp = 127;
+    }
+//
+// select PWM segment and call linear interpolator
+//    
+    if (temp <= KNEE_1_X) {
+        speed = linear_interpolate(temp, &segment_1);     // use first segment
+    }else {
+        speed = linear_interpolate(temp, &segment_2);     // use second segment
+    }
+    switch (steering_mode_B_states[steer_code]) {
+      case HALTED :
+        m_data->left_speed = 0; m_data->right_speed = 0;
+        m_data->left_motor_mode = MOTOR_BRAKE;
+        m_data->right_motor_mode = MOTOR_BRAKE;
+        break;
+      case FORWARD :
+        m_data->left_speed = speed; m_data->right_speed = speed;
+        m_data->left_motor_mode = MOTOR_FORWARD;
+        m_data->right_motor_mode = MOTOR_FORWARD;
+        break;
+      case BACKWARD :
+        m_data->left_speed = speed; m_data->right_speed = speed;
+        m_data->left_motor_mode = MOTOR_BACKWARD;
+        m_data->right_motor_mode = MOTOR_BACKWARD;        
+        break;
+      case SPIN_LEFT :
+        m_data->left_speed = speed; m_data->right_speed = speed;
+        m_data->left_motor_mode = MOTOR_BACKWARD;
+        m_data->right_motor_mode = MOTOR_FORWARD;        
+        break;
+      case SPIN_RIGHT :
+        m_data->left_speed = speed; m_data->right_speed = speed;
+        m_data->left_motor_mode = MOTOR_FORWARD;
+        m_data->right_motor_mode = MOTOR_BACKWARD;        
+        break;
+      case FORWARD_LEFT :
+        m_data->left_speed = ((speed - MINIMUM_PWM)/2); m_data->right_speed = speed;
+        m_data->left_motor_mode = MOTOR_FORWARD;
+        m_data->right_motor_mode = MOTOR_FORWARD;        
+        break;
+      case FORWARD_RIGHT :
+        m_data->left_speed = speed; m_data->right_speed = ((speed - MINIMUM_PWM)/2);
+        m_data->left_motor_mode = MOTOR_FORWARD;
+        m_data->right_motor_mode = MOTOR_FORWARD;        
+        break; 
+      case REVERSE_LEFT :
+        m_data->left_speed = ((speed - MINIMUM_PWM)/2); m_data->right_speed = speed;
+        m_data->left_motor_mode = MOTOR_BACKWARD;
+        m_data->right_motor_mode = MOTOR_BACKWARD;        
+        break;
+      case REVERSE_RIGHT :
+        m_data->left_speed = speed; m_data->right_speed = ((speed - MINIMUM_PWM)/2);
+        m_data->left_motor_mode = MOTOR_BACKWARD;
+        m_data->right_motor_mode = MOTOR_BACKWARD;        
+        break;                                 
+      default:
+        break;
+    }
+}
+
 
 //----------------------------------------------------------------------------
 // command_motors : convert motor commands to motor moves

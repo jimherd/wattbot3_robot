@@ -81,6 +81,7 @@ extern  uint8_t          radio_id;
 extern const uint8_t steering_mode_B_states[64];
 extern  const segment_data segment_1;
 extern  const segment_data segment_2;
+extern const uint8_t isqrt_table[512];
 
 
 extern  FLASH_data_t    FLASH_data;

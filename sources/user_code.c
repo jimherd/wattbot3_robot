@@ -210,9 +210,15 @@ FLASH_data_t   FLASH_data_image;
     memcpy(&FLASH_data, &FLASH_data_image, sizeof(FLASH_data_t));    // get flash data
 
     switch(command_code) {
-      case STEER_MODE_A :
-        FLASH_data_image.steer_mode = STEER_MODE_A;
+      case STEER_MODE_0 :
+        FLASH_data_image.steer_mode = STEER_MODE_0;
         break;
+      case STEER_MODE_1 :
+        FLASH_data_image.steer_mode = STEER_MODE_1;
+        break;
+      case STEER_MODE_2 :
+        FLASH_data_image.steer_mode = STEER_MODE_2;
+        break;                
       default:
         break;
     }

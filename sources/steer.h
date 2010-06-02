@@ -21,8 +21,9 @@
 
 
  
-void steer_mode_A(psx_map  *psx_data, motor_data  *m_data);
-void steer_mode_B(psx_map  *psx_data, motor_data  *m_data);
+void steer_mode_0(psx_map  *psx_data, motor_data  *m_data);
+void steer_mode_1(psx_map  *psx_data, motor_data  *m_data);
+void steer_mode_2(psx_map  *psx_data, motor_data  *m_data);
 void command_motors(motor_data  *m_data);
 uint8_t linear_interpolate(uint8_t x_value, segment_data  *s_data);
 uint8_t get_PWM_B(uint8_t x_value, segment_data  *s_data);
