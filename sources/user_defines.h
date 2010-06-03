@@ -64,7 +64,7 @@
 //
 // linear segemnts for speed to PWM transfer funcion colaculation
 //
-#define     KNEE_1_X                 100
+#define     KNEE_1_X                 120
 #define     KNEE_1_Y                  35
 
 #define     NOS_SEGMENTS               2

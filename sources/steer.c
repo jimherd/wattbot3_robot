@@ -229,7 +229,7 @@ uint8_t speed, joy_left_x, joy_left_y, joy_right_x, joy_right_y, temp;
 // get PWM from lookup table reset back to 0->127 range
 //    
     temp = isqrt_table[((joy_left_y * joy_left_y) + (joy_left_x * joy_left_x))];
-    temp = (temp << 3) & 0xF0;
+    temp = (temp << 3) | 0x0F;
     if (temp > 127 ) {
         temp = 127;
     }
@@ -241,6 +241,11 @@ uint8_t speed, joy_left_x, joy_left_y, joy_right_x, joy_right_y, temp;
     }else {
         speed = linear_interpolate(temp, &segment_2);     // use second segment
     }
+    
+    if (psx_data->buttons.cross == 1) {
+        speed = speed >> 1;
+    }
+    
     switch (steering_mode_B_states[steer_code]) {
       case HALTED :
         m_data->left_speed = 0; m_data->right_speed = 0;
