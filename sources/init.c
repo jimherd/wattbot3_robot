@@ -33,7 +33,8 @@ void init_system(void)
     Init_mcu();
     Init_Dig_IO();    
     Init_pwm();
-    Init_RTI(); 
+    Init_RTI();
+    Init_adc(); 
     init_spi_norm();
     radio_channel = get_radio_channel();      
     init_radio();

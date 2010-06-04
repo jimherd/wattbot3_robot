@@ -19,7 +19,7 @@
 #ifndef __adc_H
 #define __adc_H
 
-void init_adc(void);   
+void Init_adc(void);   
 char get_adc(char chan);
 
 #endif  /* __adc_H */

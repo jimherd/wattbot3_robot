@@ -25,7 +25,7 @@
 //** Parameters:    None
 //** Returns:       None
 //*********************************************************************** 
-void init_adc()
+void Init_adc()
 {
   /* ### Init_ADC init code */
   /* APCTL1: ADPC7=0,ADPC6=0,ADPC5=0,ADPC4=0,ADPC3=0,ADPC2=0,ADPC1=0,ADPC0=1 */
@@ -48,9 +48,11 @@ void init_adc()
 //*********************************************************************** 
 char get_adc(char chan){
 
+    DISABLE_INTERRUPTS;
     ADC1SC1_ADCH = chan;
  
     while(!ADC1SC1_COCO)
         NULL_STATEMENT;
+    ENABLE_INTERRUPTS;
     return(ADC1RL);
 }

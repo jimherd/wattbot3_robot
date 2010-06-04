@@ -315,19 +315,21 @@ void command_motors (motor_data  *m_data)
     
     if (((m_data->left_motor_mode == MOTOR_FORWARD) && (m_data->current_left_motor_mode == MOTOR_BACKWARD)) ||
         ((m_data->left_motor_mode == MOTOR_BACKWARD) && (m_data->current_left_motor_mode == MOTOR_FORWARD))) {
-        set_motor(LEFT_MOTOR, MOTOR_BRAKE, 0);
-        delay_ms(80);
-        }
-    set_motor(LEFT_MOTOR, m_data->left_motor_mode, (uint8_t)m_data->left_speed);
+            set_motor(LEFT_MOTOR, MOTOR_BRAKE, 0);
+            delay_ms(40);
+    }
+//    set_motor(LEFT_MOTOR, m_data->left_motor_mode, (uint8_t)m_data->left_speed);
+    set_motor_from_struct(LEFT_MOTOR, m_data);
     delay_ms(20);
     if (((m_data->right_motor_mode == MOTOR_FORWARD) && (m_data->current_right_motor_mode == MOTOR_BACKWARD)) ||
         ((m_data->right_motor_mode == MOTOR_BACKWARD) && (m_data->current_right_motor_mode == MOTOR_FORWARD))) {
-        set_motor(RIGHT_MOTOR, MOTOR_BRAKE, 0);
-        delay_ms(80);
-        }     
+            set_motor(RIGHT_MOTOR, MOTOR_BRAKE, 0);
+            delay_ms(40);
+    }     
     delay_ms(20);
-    set_motor(RIGHT_MOTOR, m_data->right_motor_mode, (uint8_t)m_data->right_speed);
-    delay_ms(100);
+//    set_motor(RIGHT_MOTOR, m_data->right_motor_mode, (uint8_t)m_data->right_speed);
+    set_motor_from_struct(RIGHT_MOTOR, m_data);
+//    delay_ms(40);
 }
 
 //----------------------------------------------------------------------------

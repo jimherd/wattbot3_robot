@@ -144,6 +144,80 @@ uint16_t  pulse_count, period_count ;
 }
 
 //----------------------------------------------------------------------------
+// set_motor_from_struct : configure a motor from data in a motor_data structure
+// =====================
+//
+// Notes
+//      The motor speed is specified in the range of 0 to 100% which is
+//      converted to the range 0 to 250 for use in the routine 'SetRatio8"
+//
+// Parameters
+//      unit          LEFT_MOTOR or RIGHT_MOTOR
+//      m_data[in]    pointer to motor data structure
+//
+void  set_motor_from_struct(motor_t unit, motor_data  *m_data) {
+
+uint16_t  pulse_count, period_count ;
+
+    period_count = TPM1MOD;        // get current period count (e.g. 889 for 5kHz frequency)
+    pulse_count = (period_count/100) * (100 - m_data->left_speed);
+    
+    if (unit == LEFT_MOTOR) {
+        period_count = TPM1MOD;        // get current period count (e.g. 889 for 5kHz frequency)
+        pulse_count = (period_count/100) * (100 - m_data->left_speed);
+        switch (m_data->left_motor_mode) {
+            case MOTOR_OFF :        // set FREEWHEEL condition
+                setReg16(TPM1C0V, 0);     // set LOW on PWM1 and PWM2
+                setReg16(TPM1C1V, 0);                
+                break;
+            case MOTOR_FORWARD :    // set LOW on PWM2 and LM_PWM on LM_PWM1                                
+                setReg16(TPM1C0V, pulse_count);       // set LOW on LM_PWM1
+                setReg16(TPM1C1V, period_count);      // set pwm on LM_PWM2           
+                break;
+            case MOTOR_BACKWARD :   // set LOW on PWM1 and PWM on PWM2
+                setReg16(TPM1C0V, period_count);      // set pwm on LM_PWM1
+                setReg16(TPM1C1V, pulse_count);       // set LOW on LM_PWM2    
+                break;
+            case MOTOR_BRAKE :      // set BRAKE condition
+                setReg16(TPM1C0V, period_count);     // set HIGH on LM_PWM1 and LM_PWM2
+                setReg16(TPM1C1V, period_count);
+                break;
+            default :
+                break;
+        }
+        m_data->current_left_motor_mode = m_data->left_motor_state;
+    }
+    
+    if (unit == RIGHT_MOTOR) {
+        period_count = TPM1MOD;        // get current period count (e.g. 889 for 5kHz frequency)
+        pulse_count = (period_count/100) * (100 - m_data->right_speed);
+        switch (m_data->right_motor_mode) {
+            case MOTOR_OFF :        // set FREEWHEEL condition
+                setReg16(TPM1C2V, 0);     // set LOW on RM_PWM1 and RM_PWM2
+                setReg16(TPM1C3V, 0);
+                break;
+            case MOTOR_FORWARD :    // set LOW on RM_PWM2 and pwm on LM_PWM1
+                setReg16(TPM1C2V, period_count);      // set pwm on RM_PWM1
+                setReg16(TPM1C3V, pulse_count);       // set LOW on RM_PWM2
+                break;
+            case MOTOR_BACKWARD :   // set LOW on RM_PWM1 and RM_PWM2
+                setReg16(TPM1C2V, pulse_count);       // set LOW on RM_PWM1
+                setReg16(TPM1C3V, period_count);      // set pwm on RM_PWM2
+                break;
+            case MOTOR_BRAKE :      // set BRAKE condition
+                setReg16(TPM1C2V, period_count);     // set HIGH on RM_PWM1 and RM_PWM2
+                setReg16(TPM1C3V, period_count);
+                break;
+            default :
+                break;
+        }
+        m_data->current_right_motor_mode = m_data->right_motor_state;
+    }
+    setReg8(TPM1SC, (TPM_OVFL_INT_DIS | TPM_EDGE_ALIGN | TPM_BUSCLK | TPM_PRESCAL_DIV1));  
+//    set_vehicle_state(); 
+}
+
+//----------------------------------------------------------------------------
 // vehicle_stop : set both motor to brake
 // ============
 //
@@ -251,7 +325,7 @@ FLASH_data_t   FLASH_data_image;
 // ====
 //
 // Notes
-//      Yellow led is falshed "flash_count" times with a period of 0.5 second.
+//      Red LED is flashed "flash_count" times with a period of 0.5 second.
 //      Repeated infinitely, with 2 seconds between goups of flashes.
 //
 // Parameters
@@ -264,12 +338,12 @@ void hang(uint8_t flash_count)
 {
 int i;
 
-    YELLOW_LED_OFF;
+    RED_LED_OFF;
     FOREVER {
         for(i=0 ; i < flash_count ; i++) {
-            YELLOW_LED_ON;
+            RED_LED_ON;
             delay_250ms();delay_250ms();
-            YELLOW_LED_OFF;
+            RED_LED_OFF;
             delay_250ms();delay_250ms(); 
         }
         for(i=0 ; i<4 ; i++) {
@@ -297,4 +371,35 @@ uint8_t nibble_swap(uint8_t value)
             NSA
     };
     return value;
+}
+
+//----------------------------------------------------------------------------
+// check_battery_volts : check level of battery supply
+// ===================
+//
+// Notes
+//      System hangs if battery is below a certain threshold
+//
+//      Check battery levels and do one of the following
+//
+//  1. battery level very low -> flash red LED 3 flashes + space
+//  2. battery level low -> flash yellow and red LEDS - 2 flashes + space
+//  3. battery level OK -> continue as normal
+//
+//
+// Parameters
+//      None
+//
+// Values returned
+//      none
+//
+void check_battery_volts(void) 
+{
+    
+    if (get_adc(BATTERY_VOLTS) < CRITICAL_BATTERY_THRESHOLD) {
+        hang(BATTERY_VERY_LOW);                        //  insufficient power to run the motors reliably
+    }
+    if (get_adc(BATTERY_VOLTS) < LOW_BATTERY_THRESHOLD) {
+        hang(BATTERY_LOW);
+    }    
 }

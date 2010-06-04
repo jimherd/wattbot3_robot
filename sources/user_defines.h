@@ -34,6 +34,9 @@
 
 #define     KICK_WATCHDOG    SRS = 0x00;
 
+#define  DISABLE_INTERRUPTS       { asm sei;}
+#define  ENABLE_INTERRUPTS        { asm cli;}
+
 //----------------------------------------------------------------------------
 // system clock
 //
@@ -64,7 +67,7 @@
 //
 // linear segemnts for speed to PWM transfer funcion colaculation
 //
-#define     KNEE_1_X                 120
+#define     KNEE_1_X                 125
 #define     KNEE_1_Y                  35
 
 #define     NOS_SEGMENTS               2
@@ -72,9 +75,6 @@
 #define     DIFFERENTIAL_NULL          7
 
 #define     FLASH_ERASE_STATE       0xff
-
-#define     CRITICAL_BATTERY_THRESHOLD  150
-#define     LOW_BATTERY_THRESHOLD       180
 
 typedef enum {
     STEER_MODE_0, STEER_MODE_1, STEER_MODE_2
@@ -88,7 +88,6 @@ typedef enum {
 #define     OK          0
 #define     FAIL        1
 
-#define     FLASH_UPDATE_COMPLETE   2
 
 //----------------------------------------------------------------------------
 // ON/OFF codes
@@ -110,17 +109,19 @@ typedef enum {MODE_INIT, MODE_RUNNING, MODE_STOPPED} mode_state_t;
 // error codes
 //
 typedef enum {
-    NO_ERROR, TIME_OUT
+    NO_ERROR, TIME_OUT, BATTERY_LOW, BATTERY_VERY_LOW, FLASH_UPDATE_COMPLETE, BAD_STEER_MODE 
 } error_codes_t;    
 
 //----------------------------------------------------------------------------
 // analogue channels  (0->13)
 //
 typedef enum {
-        BATTERY_VOLTS, 
+        BATTERY_VOLTS=4, 
         
 } a2d_channels_t;
  
+#define     CRITICAL_BATTERY_THRESHOLD  150
+#define     LOW_BATTERY_THRESHOLD       170     // 4.4v level
 
 #endif
 

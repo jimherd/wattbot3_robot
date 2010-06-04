@@ -66,6 +66,7 @@ typedef volatile struct {
 #include "rti.h"
 #include "steer.h"
 #include "flashio.h"
+#include "adc.h"
 
 extern  uint16_t         right_speed, left_speed, current_right_speed, current_left_speed;
 extern  uint8_t          left_PWM, right_PWM, new_left_PWM, new_right_PWM;
@@ -78,10 +79,10 @@ extern  uint8_t          radio_channel;
 extern  uint32_t         tick_count;
 extern  uint8_t          radio_id;
 
-extern const uint8_t steering_mode_B_states[64];
+extern  const uint8_t steering_mode_B_states[64];
 extern  const segment_data segment_1;
 extern  const segment_data segment_2;
-extern const uint8_t isqrt_table[512];
+extern  const uint8_t isqrt_table[512];
 
 
 extern  FLASH_data_t    FLASH_data;
