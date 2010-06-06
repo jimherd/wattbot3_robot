@@ -42,9 +42,10 @@ uint8_t           temp;
 //
 //  Check radio address switches. If raw value is > 0xA0 then process as special commands
 //
-    temp = nibble_swap(SWITCH_VALUE);
-    if (temp > 0xA0) {
-        exec_command(temp & 0x0F);
+    temp = (SWITCH_VALUE);
+    temp = (((temp >> 4) & 0x0F) + ((temp << 4) & 0xF0));    // temp = nibble_swap(temp);
+    if (temp >= 0xA0) {
+        exec_command(temp);
         hang(FLASH_UPDATE_COMPLETE);
     }
 //
@@ -53,8 +54,9 @@ uint8_t           temp;
 //  1. battery level very low -> show recharge message. and halt
 //  2. battery level low -> show battery level message for several seconds then show "robot"
 //  3. battery level OK -> continue as normal and show "robot" string
-//   
-    check_battery_volts();
+// 
+    RED_LED_OFF;  
+    check_battery_volts(&mot_data);
     good_packets = 0;  
     bad_packets = 0;
     FOREVER {
@@ -81,12 +83,13 @@ uint8_t           temp;
 //            RED_LED_ON;
         }
         YELLOW_LED_ON;
-
-        temp = FLASH_data.steer_mode;
-        if (temp > MAX_STEER_MODE) {
-            temp = 0;
+//
+// get steer mode
+//
+        temp = STEER_MODE_2;            // default condition
+        if (FLASH_data.steer_mode <= MAX_STEER_MODE) {
+            temp = FLASH_data.steer_mode;
         }
-temp = STEER_MODE_2;    // ***************************** temporary test
         switch (temp) {
           case STEER_MODE_0 :
             steer_mode_0(&psx_data, &mot_data);
@@ -112,7 +115,7 @@ temp = STEER_MODE_2;    // ***************************** temporary test
 //
 // check battery
 //        
-//        check_battery_volts();
+        check_battery_volts(&mot_data);
         
         good_packets++;
     }

@@ -20,7 +20,7 @@ uint8_t read_address(void);
 void exec_command(uint8_t command_code);
 void hang(uint8_t flash_count);
 uint8_t nibble_swap(uint8_t value);
-void check_battery_volts(void);
+void check_battery_volts(motor_data  *m_data);
 
 #endif
 

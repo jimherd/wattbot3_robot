@@ -34,7 +34,8 @@ void init_system(void)
     Init_Dig_IO();    
     Init_pwm();
     Init_RTI();
-    Init_adc(); 
+    Init_adc();
+    Init_flashio(); 
     init_spi_norm();
     radio_channel = get_radio_channel();      
     init_radio();
@@ -198,6 +199,20 @@ void Init_RTI(void) {
 
     setReg8(SRTISC, (RTI_CLK_SEL_1KHZ | RTI_INT_EN | RTI_DEL8MS));       
 }
+
+//----------------------------------------------------------------------------
+// Init_flashio : configure flash subsystem to allow erase/write commands
+// ============
+//
+// Parameters
+//      None
+//
+// Notes
+//      Set parameters to give a flash clock of approx 200k from the busclk.
+//
+void Init_flashio(void) {  
+    setReg8(FCDIV, (FC_PRESCALE_8 | FC_DIV_20MHZ_BUSCLK));
+}     
 
 
 

@@ -27,8 +27,6 @@
 void motor_sys_init(motor_data  *m_data) 
 {
     m_data->state_of_vehicle = STOPPED;
-    m_data->left_motor_state = MOTOR_OFF;
-    m_data->right_motor_state = MOTOR_OFF;
     
     m_data->left_speed  = DEFAULT_SPEED; 
     m_data->right_speed = DEFAULT_SPEED; 
@@ -185,7 +183,7 @@ uint16_t  pulse_count, period_count ;
             default :
                 break;
         }
-        m_data->current_left_motor_mode = m_data->left_motor_state;
+        m_data->current_left_motor_mode = m_data->left_motor_mode;
     }
     
     if (unit == RIGHT_MOTOR) {
@@ -211,7 +209,7 @@ uint16_t  pulse_count, period_count ;
             default :
                 break;
         }
-        m_data->current_right_motor_mode = m_data->right_motor_state;
+        m_data->current_right_motor_mode = m_data->right_motor_mode;
     }
     setReg8(TPM1SC, (TPM_OVFL_INT_DIS | TPM_EDGE_ALIGN | TPM_BUSCLK | TPM_PRESCAL_DIV1));  
 //    set_vehicle_state(); 
@@ -283,17 +281,23 @@ FLASH_data_t   FLASH_data_image;
 
     memcpy(&FLASH_data, &FLASH_data_image, sizeof(FLASH_data_t));    // get flash data
 
-    switch(command_code) {
-      case STEER_MODE_0 :
-        FLASH_data_image.steer_mode = STEER_MODE_0;
+    switch((command_code >> 4) & 0x0F) {
+      case 0x0A :
+        switch(command_code & 0x0F) {
+          case STEER_MODE_0 :
+            FLASH_data_image.steer_mode = STEER_MODE_0;
+            break;
+          case STEER_MODE_1 :
+            FLASH_data_image.steer_mode = STEER_MODE_1;
+            break;
+          case STEER_MODE_2 :
+            FLASH_data_image.steer_mode = STEER_MODE_2;
+            break;                
+          default:
+            break;
+        }
         break;
-      case STEER_MODE_1 :
-        FLASH_data_image.steer_mode = STEER_MODE_1;
-        break;
-      case STEER_MODE_2 :
-        FLASH_data_image.steer_mode = STEER_MODE_2;
-        break;                
-      default:
+      default :
         break;
     }
 //
@@ -321,7 +325,7 @@ FLASH_data_t   FLASH_data_image;
 
 
 //----------------------------------------------------------------------------
-// hang : halt and flash code on yellow light
+// hang : halt and flash code on red light
 // ====
 //
 // Notes
@@ -380,7 +384,7 @@ uint8_t nibble_swap(uint8_t value)
 // Notes
 //      System hangs if battery is below a certain threshold
 //
-//      Check battery levels and do one of the following
+//      Check battery levels only when motors are off and do one of the following
 //
 //  1. battery level very low -> flash red LED 3 flashes + space
 //  2. battery level low -> flash yellow and red LEDS - 2 flashes + space
@@ -388,13 +392,17 @@ uint8_t nibble_swap(uint8_t value)
 //
 //
 // Parameters
-//      None
+//      m_data     pointer to 
 //
 // Values returned
 //      none
 //
-void check_battery_volts(void) 
+void check_battery_volts(motor_data  *m_data) 
 {
+
+    if ((m_data->current_left_speed != 0 ) || (m_data->current_right_speed != 0)) {
+        return;
+    }
     
     if (get_adc(BATTERY_VOLTS) < CRITICAL_BATTERY_THRESHOLD) {
         hang(BATTERY_VERY_LOW);                        //  insufficient power to run the motors reliably

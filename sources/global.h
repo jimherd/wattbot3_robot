@@ -25,7 +25,6 @@
 typedef struct  {
     uint16_t         right_speed, left_speed, current_right_speed, current_left_speed;
     motor_mode_t     left_motor_mode, right_motor_mode, current_left_motor_mode, current_right_motor_mode;
-    uint16_t         left_motor_state, right_motor_state;
     vehicle_state_t  state_of_vehicle;
     uint8_t          pwm_differential;
 } motor_data;
@@ -71,7 +70,6 @@ typedef volatile struct {
 extern  uint16_t         right_speed, left_speed, current_right_speed, current_left_speed;
 extern  uint8_t          left_PWM, right_PWM, new_left_PWM, new_right_PWM;
 extern  motor_mode_t     left_motor_mode, right_motor_mode, current_left_motor_mode, current_right_motor_mode;
-extern  uint16_t         left_motor_state, right_motor_state;
 extern  vehicle_state_t  state_of_vehicle;
 extern  uint16_t         straight_line_speed, turn_speed;
 extern  uint8_t          pwm_differential;
