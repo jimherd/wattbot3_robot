@@ -25,5 +25,6 @@ void Init_pwm(void);
 void Init_Dig_IO(void);
 void Init_RTI(void);
 void Init_flashio(void);
+void Init_low_voltage_detect(void);
 
 #endif  /* __init_H */

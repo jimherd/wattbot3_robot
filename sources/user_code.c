@@ -343,6 +343,7 @@ void hang(uint8_t flash_count)
 int i;
 
     RED_LED_OFF;
+    vehicle_stop();   // ensure that robot has stopped
     FOREVER {
         for(i=0 ; i < flash_count ; i++) {
             RED_LED_ON;
@@ -403,11 +404,17 @@ void check_battery_volts(motor_data  *m_data)
     if ((m_data->current_left_speed != 0 ) || (m_data->current_right_speed != 0)) {
         return;
     }
-    
+//
+// Check again.
+//    
     if (get_adc(BATTERY_VOLTS) < CRITICAL_BATTERY_THRESHOLD) {
-        hang(BATTERY_VERY_LOW);                        //  insufficient power to run the motors reliably
+        vehicle_stop();
+        delay_ms(100);        if (get_adc(BATTERY_VOLTS) < CRITICAL_BATTERY_THRESHOLD) {       // check again
+            hang(BATTERY_VERY_LOW);
+        }
+        return;     // return if dip was temporary
     }
-    if (get_adc(BATTERY_VOLTS) < LOW_BATTERY_THRESHOLD) {
-        hang(BATTERY_LOW);
-    }    
+//    if (get_adc(BATTERY_VOLTS) < LOW_BATTERY_THRESHOLD) {
+//        hang(BATTERY_LOW);
+//    }    
 }

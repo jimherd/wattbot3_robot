@@ -31,6 +31,7 @@
 void init_system(void)
 {
     Init_mcu();
+    Init_low_voltage_detect();
     Init_Dig_IO();    
     Init_pwm();
     Init_RTI();
@@ -214,6 +215,19 @@ void Init_flashio(void) {
     setReg8(FCDIV, (FC_PRESCALE_8 | FC_DIV_20MHZ_BUSCLK));
 }     
 
+//----------------------------------------------------------------------------
+// Init_low_voltage_detect : configure "brown" out system
+// =======================
+//
+// Parameters
+//      None
+//
+// Notes
+//      Set parameters to give a flash clock of approx 200k from the busclk.
+//
+void Init_low_voltage_detect(void) {  
+    setReg8(SPMSC1, (LOW_VOLT_DETECT_RESET_EN | LOW_VOLT_DETECT_STOP_EN | LOW_VOLT_DETECT_EN));
+}     
 
 
                                                                      

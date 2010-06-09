@@ -67,7 +67,7 @@ uint8_t           temp;
         start_time = tick_count;
         while(packet_rx(&psx_data, sizeof(psx_data)) != sizeof(psx_data)) {    
             bad_packets++;
-            if (bad_packets > 200) {
+            if (bad_packets > 500) {
                 vehicle_stop();
                 radio_rx_sm_rst();
                 bad_packets = 0;
